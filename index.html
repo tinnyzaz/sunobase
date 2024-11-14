@@ -41,18 +41,45 @@
       width: auto;
       flex: 1;
     }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .width-row {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <h1>Sunobase JSON Viewer</h1>
-  <input type="file" id="fileInput" accept=".json">
-  <input type="text" id="globalSearchInput" placeholder="Search all fields..">
-  <label>
-    <input type="checkbox" id="toggleImages">
-    Load Images
-  </label>
+  <div class="controls">
+    <div>
+      <input type="file" id="fileInput" accept=".json">
+      <input type="text" id="globalSearchInput" placeholder="Search all fields..">
+    </div>
+    <div>
+      <label>
+        <input type="checkbox" id="toggleEditColumns">
+        Edit Columns
+      </label>
+      <label>
+        <input type="checkbox" id="toggleImages">
+        Load Images
+      </label>
+    </div>
+  </div>
   <table id="dataTable">
     <thead>
+      <tr class="width-row">
+        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(0, this.value)"></th>
+        <th><input type="number" class="width-input" value="200" oninput="setColumnWidth(1, this.value)"></th>
+        <th><input type="number" class="width-input" value="100" oninput="setColumnWidth(2, this.value)"></th>
+        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(3, this.value)"></th>
+        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(4, this.value)"></th>
+        <th><input type="number" class="width-input" value="200" oninput="setColumnWidth(5, this.value)"></th>
+      </tr>
       <tr>
         <th>Link</th>
         <th>Title</th>
@@ -60,14 +87,6 @@
         <th>Duration</th>
         <th>Image</th>
         <th class="flexible">Style</th>
-      </tr>
-      <tr>
-        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(0, this.value)"></th>
-        <th><input type="number" class="width-input" value="200" oninput="setColumnWidth(1, this.value)"></th>
-        <th><input type="number" class="width-input" value="100" oninput="setColumnWidth(2, this.value)"></th>
-        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(3, this.value)"></th>
-        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(4, this.value)"></th>
-        <th><input type="number" class="width-input" value="200" oninput="setColumnWidth(5, this.value)"></th>
       </tr>
       <tr>
         <th><input type="text" class="filter-input" placeholder="Filter Link" oninput="filterTable(0)"></th>
@@ -112,6 +131,12 @@
           img.alt = '🖼️';
         }
       });
+    });
+
+    document.getElementById('toggleEditColumns').addEventListener('change', function() {
+      const showWidthInputs = this.checked;
+      const widthRow = document.querySelector('.width-row');
+      widthRow.style.display = showWidthInputs ? 'table-row' : 'none';
     });
 
     function populateTable(data) {
