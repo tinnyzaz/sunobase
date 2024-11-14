@@ -1,4 +1,10 @@
 (function() {
+  // Check if the script is running on the correct page
+  if (window.location.href !== 'https://suno.com/me') {
+    alert('This script should only be used on the https://suno.com/me page.');
+    return;
+  }
+
   // Step 1: Find all elements with the specified class for songs
   const songElements = document.querySelectorAll('.react-aria-GridListItem');
 
