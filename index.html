@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sunobase JSON Viewer</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    th {
+      cursor: pointer;
+      background-color: #f2f2f2;
+    }
+    th:hover {
+      background-color: #ddd;
+    }
+    .asc::after {
+      content: ' 🔺';
+    }
+    .desc::after {
+      content: ' 🔻';
+    }
+    a {
+      text-decoration: none;
+    }
+    .filter-input, .width-input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .flexible {
+      width: auto;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sunobase JSON Viewer</h1>
+  <input type="file" id="fileInput" accept=".json">
+  <input type="text" id="globalSearchInput" placeholder="Search all fields..">
+  <label>
+    <input type="checkbox" id="toggleImages">
+    Load Images
+  </label>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Link</th>
+        <th>Title</th>
+        <th>Song ID</th>
+        <th>Duration</th>
+        <th>Image</th>
+        <th class="flexible">Style</th>
+      </tr>
+      <tr>
+        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(0, this.value)"></th>
+        <th><input type="number" class="width-input" value="200" oninput="setColumnWidth(1, this.value)"></th>
+        <th><input type="number" class="width-input" value="100" oninput="setColumnWidth(2, this.value)"></th>
+        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(3, this.value)"></th>
+        <th><input type="number" class="width-input" value="40" oninput="setColumnWidth(4, this.value)"></th>
+        <th><input type="number" class="width-input" value="200" oninput="setColumnWidth(5, this.value)"></th>
+      </tr>
+      <tr>
+        <th><input type="text" class="filter-input" placeholder="Filter Link" oninput="filterTable(0)"></th>
+        <th><input type="text" class="filter-input" placeholder="Filter Title" oninput="filterTable(1)"></th>
+        <th><input type="text" class="filter-input" placeholder="Filter Song ID" oninput="filterTable(2)"></th>
+        <th><input type="text" class="filter-input" placeholder="Filter Duration" oninput="filterTable(3)"></th>
+        <th><input type="text" class="filter-input" placeholder="Filter Image" oninput="filterTable(4)"></th>
+        <th><input type="text" class="filter-input" placeholder="Filter Style" oninput="filterTable(5)"></th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+  </table>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const data = JSON.parse(e.target.result);
+          populateTable(data);
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    document.getElementById('globalSearchInput').addEventListener('input', function() {
+      filterTable();
+    });
+
+    document.getElementById('toggleImages').addEventListener('change', function() {
+      const loadImages = this.checked;
+      const rows = document.querySelectorAll('#tableBody tr');
+      rows.forEach(row => {
+        const imgCell = row.cells[4];
+        const img = imgCell.querySelector('img');
+        if (loadImages) {
+          img.src = img.getAttribute('data-src');
+        } else {
+          img.removeAttribute('src');
+          img.alt = '🖼️';
+        }
+      });
+    });
+
+    function populateTable(data) {
+      const tableBody = document.getElementById('tableBody');
+      const loadImages = document.getElementById('toggleImages').checked;
+      tableBody.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><a href="https://suno.com/song/${item.songID}" target="_blank" aria-label="Link">🎶</a></td>
+          <td>${item.title}</td>
+          <td>${item.songID}</td>
+          <td>${item.duration || ''}</td>
+          <td><a href="${item.imageURL}" target="_blank"><img data-src="${item.imageURL}" alt="🖼️" width="50"></a></td>
+          <td>${item.stylePrompt || ''}</td>
+        `;
+        if (loadImages) {
+          const img = row.querySelector('img');
+          img.src = img.getAttribute('data-src');
+        }
+        tableBody.appendChild(row);
+      });
+    }
+
+    function filterTable(columnIndex) {
+      const globalFilter = document.getElementById('globalSearchInput').value.toLowerCase();
+      const table = document.getElementById('dataTable');
+      const rows = table.querySelectorAll('tbody tr');
+      const columnFilters = Array.from(document.querySelectorAll('.filter-input')).map(input => input.value.toLowerCase());
+
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const matchesGlobalFilter = Array.from(cells).some(cell => cell.textContent.toLowerCase().includes(globalFilter));
+        const matchesColumnFilters = columnFilters.every((filter, index) => cells[index].textContent.toLowerCase().includes(filter));
+        row.style.display = matchesGlobalFilter && matchesColumnFilters ? '' : 'none';
+      });
+    }
+
+    function sortTable(columnIndex) {
+      const table = document.getElementById('dataTable');
+      const rows = Array.from(table.rows).slice(3); // Skip the header and filter rows
+      const header = table.rows[0].cells[columnIndex];
+      const isAscending = header.classList.toggle('asc');
+      if (!isAscending) {
+        header.classList.toggle('desc');
+      } else {
+        header.classList.remove('desc');
+      }
+      rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent.trim();
+        const bText = b.cells[columnIndex].textContent.trim();
+        return isAscending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+      });
+      rows.forEach(row => table.appendChild(row));
+
+      // Remove sort indicators from other headers
+      Array.from(table.rows[0].cells).forEach((cell, index) => {
+        if (index !== columnIndex) {
+          cell.classList.remove('asc', 'desc');
+        }
+      });
+    }
+
+    function setColumnWidth(columnIndex, width) {
+      const table = document.getElementById('dataTable');
+      table.querySelectorAll('th, td').forEach(cell => {
+        if (cell.cellIndex === columnIndex) {
+          cell.style.width = `${width}px`;
+        }
+      });
+    }
+
+    // Set default column widths
+    document.querySelectorAll('.width-input').forEach((input, index) => {
+      setColumnWidth(index, input.value);
+    });
+  </script>
+</body>
+</html>
