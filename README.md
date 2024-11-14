@@ -1,6 +1,6 @@
 # Sunobase
 
-Sunobase is a web application that allows you to scrape your Suno song library page by page to create an easily sortable and searchable local database.
+Sunobase is a browser console script that allows you to scrape your Suno song library page by page to create an easily sortable and searchable local database.
 The application provides features to search, filter, and sort the data, as well as dynamically adjust column widths and load images.
 
 ## Installation
@@ -8,7 +8,7 @@ The application provides features to search, filter, and sort the data, as well 
 To run the application, follow these steps:
 
 1. **Open the Browser Console**: Open your web browser and navigate to the Developer Tools (usually accessible by pressing `F12` or `Ctrl+Shift+I`).
-2. **Paste the Code**: Copy the code from the `sunobase_scraper.js` file and paste it into the Console tab of the Developer Tools.
+2. **Paste the Code**: Copy the code from the `sunobase_scraper.js` file and paste it into the Console tab of the Developer Tools. You will need to do this manually for every page of your Suno library, but the database will be updated to add new songs without removing existing ones, so for now you can just load and overwrite the `sunobase.json` file (or name it whatever you want)
 3. **View the Database**: Load the `index.html` file in your browser and click the button to browse for your `sunobase.json` file.
 
 ## Contributing
